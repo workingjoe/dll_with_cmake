@@ -10,6 +10,8 @@ add_library(mylib SHARED
 
 set_target_properties(mylib PROPERTIES
     OUTPUT_NAME "mylib"
+    # may need to set(CMAKE_STATIC_LIBRARY_PREFIX "") elsewhere
+    PREFIX "" # do not prefix with 'lib' on gcc    
     # Only symbols explicitly marked MYLIB_EXPORT are visible outside the
     # shared library on GCC/Clang. (No effect on MSVC, which already only
     # exports symbols explicitly marked __declspec(dllexport).)
@@ -41,6 +43,8 @@ add_library(mylib_static STATIC
 )
 
 set_target_properties(mylib_static PROPERTIES
+    # may need to set(CMAKE_STATIC_LIBRARY_PREFIX "") elsewhere
+    PREFIX "" # do not prefix with 'lib' on gcc
     OUTPUT_NAME "mylib_static"
 )
 
