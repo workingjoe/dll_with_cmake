@@ -36,9 +36,9 @@ std::string platform_library_filename(const std::string& base_name)
 #if defined(_WIN32)
     return base_name + ".dll";
 #elif defined(__APPLE__)
-    return "lib" + base_name + ".dylib";
+    return base_name + ".dylib";
 #else
-    return "lib" + base_name + ".so";
+    return base_name + ".so";
 #endif
 }
 
