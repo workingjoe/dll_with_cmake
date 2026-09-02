@@ -1,9 +1,9 @@
 // test_staticLib
 //
-// Same idea as test_sharedLib, but here `mylib_static` is a normal,
-// compile-time/link-time dependency (see target_link_libraries in
-// test/CMakeLists.txt) - no dlopen/LoadLibrary involved. This is the
-// "statically linkable" alternative build the project also supports.
+// The static-link alternative to the plugin path. Here `mylib_static` is a
+// normal compile-time/link-time dependency (see target_link_libraries in
+// test/CMakeLists.txt) - no dlopen/LoadLibrary, no plugin ABI, no host. The
+// program just calls version() directly, the traditional way.
 
 #include <cstdio>
 #include <cstdlib>

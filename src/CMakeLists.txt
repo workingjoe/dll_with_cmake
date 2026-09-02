@@ -1,41 +1,22 @@
-include(GenerateExportHeader)
-
 # ---------------------------------------------------------------------------
-# Shared library target
+# mylib as a PLUGIN: a CMake MODULE library, built to be loaded at run time
+# by a host (see test/test_plugin.cpp) and never linked against.
+#
+# add_mylib_plugin() comes from cmake/MylibPlugin.cmake (included at the top
+# level). It creates the MODULE target, strips the "lib" prefix, applies
+# hidden visibility, routes the output into <build>/plugins, and runs
+# generate_export_header() to produce mylib_export.h.
 # ---------------------------------------------------------------------------
-add_library(mylib SHARED
-    mylib.cpp
-    mylib_api.h
-)
-
-set_target_properties(mylib PROPERTIES
-    OUTPUT_NAME "mylib"
-    # may need to set(CMAKE_STATIC_LIBRARY_PREFIX "") elsewhere
-    PREFIX "" # do not prefix with 'lib' on gcc    
-    # Only symbols explicitly marked MYLIB_EXPORT are visible outside the
-    # shared library on GCC/Clang. (No effect on MSVC, which already only
-    # exports symbols explicitly marked __declspec(dllexport).)
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON
-)
-
-target_include_directories(mylib
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-)
-
-# Generates mylib_export.h in the build tree, defining MYLIB_EXPORT (and
-# friends) correctly for whichever compiler is currently building the
-# project. mylib_api.h #includes this generated header.
-generate_export_header(mylib
-    BASE_NAME MYLIB
-    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/mylib_export.h
+add_mylib_plugin(mylib
+    SOURCES
+        mylib.cpp
+        mylib_api.h
 )
 
 # ---------------------------------------------------------------------------
-# Static library target - same source code, built as a static archive
-# instead, for anyone who'd rather link mylib directly into their app.
+# Static library alternative - the same source compiled as a static archive,
+# for callers who want to link mylib directly into their program instead of
+# loading it as a plugin. This target DOES expose version() for linking.
 # ---------------------------------------------------------------------------
 add_library(mylib_static STATIC
     mylib.cpp
@@ -43,19 +24,20 @@ add_library(mylib_static STATIC
 )
 
 set_target_properties(mylib_static PROPERTIES
-    # may need to set(CMAKE_STATIC_LIBRARY_PREFIX "") elsewhere
-    PREFIX "" # do not prefix with 'lib' on gcc
+    PREFIX ""                       # mylib_static.a, not libmylib_static.a
     OUTPUT_NAME "mylib_static"
 )
 
 target_include_directories(mylib_static
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}          # for the generated mylib_export.h
 )
 
-# Tells mylib_export.h (generated above) to make MYLIB_EXPORT expand to
-# nothing for this target, which is required for static libraries on
-# Windows/MSVC (no dllexport/dllimport involved) and is harmless elsewhere.
-# PUBLIC so it also applies to anything that links against mylib_static.
+# Tells the generated mylib_export.h to make MYLIB_EXPORT expand to nothing:
+# required for a static library on Windows/MSVC (no dllexport/dllimport) and
+# harmless everywhere else. PUBLIC so it also applies to anything that links
+# mylib_static.
 target_compile_definitions(mylib_static PUBLIC MYLIB_STATIC_DEFINE)

@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(SharedLibExample
+project(PluginExample
     VERSION 1.0.0
-    DESCRIPTION "Minimal modern-CMake example: shared library + dynamic loading + static-link alternative"
+    DESCRIPTION "Minimal modern-CMake example: a CMake MODULE plugin + a run-time host + a static-link alternative"
     LANGUAGES CXX
 )
+
+# Project CMake modules (cmake/MylibPlugin.cmake, ...) live here.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(MylibPlugin)
 
 # ---------------------------------------------------------------------------
 # Global project settings
@@ -24,9 +28,10 @@ if(NOT _is_multi_config AND NOT CMAKE_BUILD_TYPE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 endif()
 
-# Put every build product (exe/dll/so/lib) somewhere predictable so the
-# dynamically-loaded shared library ends up next to the executable that
-# loads it, and so static .lib/.a files are easy to find.
+# Put build products somewhere predictable. Executables go in bin/, static
+# archives in lib/. Plugins are handled separately by add_mylib_plugin(),
+# which routes them into plugins/ - kept apart from everything else so it's
+# obvious they are discovered and loaded, not linked.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
